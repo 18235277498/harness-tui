@@ -1,0 +1,42 @@
+{
+  "name": "harness-tui",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "VueTUI chat panel driving a DeepSeek Harness jsonrpc-agent subprocess.",
+  "bin": {
+    "dsh-tui": "dist/main.mjs"
+  },
+  "files": [
+    "dist",
+    "opencode-sandbox.cordis.yml"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "start": "node dist/main.mjs",
+    "test": "vitest run --config vitest.config.ts",
+    "patch:kernel": "node scripts/patch-sdk-resume.mjs"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@deepseek-ai/dsh-sdk-client": "file:../deepseek-harness/packages/sdk/client",
+    "@deepseek-ai/dsh-sdk-protocol": "file:../deepseek-harness/packages/sdk/protocol",
+    "@vue-tui/components": "0.3.0",
+    "@vue-tui/runtime": "0.3.0",
+    "@vue-tui/testing": "^0.3.0",
+    "@vue-tui/vite": "0.3.1",
+    "@types/node": "^22.18.0",
+    "highlight.js": "^11.12.0",
+    "marked": "^18.0.9",
+    "tsx": "^4.22.4",
+    "unplugin-vue": "7.2.0",
+    "vite": "8.2.1",
+    "vitest": "^4.1.10",
+    "vue": "^3.5.0",
+    "yaml": "^2.6.1"
+  },
+  "engines": {
+    "node": ">=22.18.0"
+  }
+}
