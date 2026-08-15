@@ -2,16 +2,27 @@
  * Diagnostic: run one prompt on the RESUMED session directly via the SDK and
  * print the turn/end reason + any llm/retry events, to see why the model call
  * fails on a resumed session.
+ *
+ * No absolute paths or session ids are hardcoded:
+ *   DSH_REPO     - sibling deepseek-harness checkout (default: ../deepseek-harness)
+ *   DSH_CONFIG   - cordis composition to run (default: opencode-free.cordis.yml)
+ *   TEST_SESSION - session id to resume (required)
+ *   TEST_MODEL   - model override (default: mimo-v2.5-free)
  */
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { DeepSeekHarness } from "@deepseek-ai/dsh-sdk-client";
 
-const REPO = "C:\\Users\\lc182\\Desktop\\deepseek_harness\\deepseek-harness";
+const REPO = process.env.DSH_REPO ?? resolve(process.cwd(), "..", "deepseek-harness");
 const BIN = `${REPO}/packages/examples/jsonrpc-demo/src/bin.ts`;
-const CONFIG = "C:\\Users\\lc182\\Desktop\\deepseek_harness\\harness-tui\\opencode-free.cordis.yml";
-const SESSION = "session-fdcc4afd04bc431da8dd826ac1576986";
+const CONFIG = process.env.DSH_CONFIG ?? "opencode-free.cordis.yml";
+const SESSION = process.env.TEST_SESSION ?? "";
+
+if (!SESSION) {
+  console.error("[usage] set TEST_SESSION=<session-id> to resume a session");
+  process.exit(2);
+}
 
 function apiKey(): string {
   try {

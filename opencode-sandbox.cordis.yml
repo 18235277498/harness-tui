@@ -1,0 +1,140 @@
+# harness-tui: coding agent over the FREE OpenCode Zen (`opencode`) route, with
+# the full permission system (sandbox modes + approval asks) enabled. The
+# default preset is `danger-full-access` so existing unattended behavior is
+# preserved; switch to read-only / workspace-write via /permission to engage
+# the sandbox (Windows ACL restricted-token) and approval prompts.
+
+- id: credentials
+  name: '@deepseek-ai/dsh-credentials-local'
+
+- id: settings
+  name: '@deepseek-ai/dsh-settings-file'
+
+# pi-ai multi-provider adapter; the free OpenCode Zen (`opencode`) route is the
+# base. Users may add providers by writing the `llm-pi-ai` section of
+# <home>/settings.yaml (hot-published, no restart).
+- id: llm-pi-ai
+  name: '@deepseek-ai/dsh-llm-pi-ai'
+  config:
+    providers:
+      opencode:
+        apiKeyEnv: OPENCODE_GO_API_KEY
+
+# The agent-default model used by SDK-created agents (a free OpenCode Zen model).
+- id: agent-default-model
+  name: '@deepseek-ai/dsh-agent-default-model'
+  config:
+    provider: opencode
+    model: deepseek-v4-flash-free
+
+- id: sdk-jsonrpc-server
+  name: '@deepseek-ai/dsh-sdk-jsonrpc-server'
+  config:
+    maxTokensAsSuccess: true
+
+# File sandbox (Windows: ACL restricted-token) + the sandbox policy seam.
+# danger-full-access bypasses confinement, so the default mode costs nothing.
+- id: sandbox
+  name: '@deepseek-ai/dsh-sandbox-local'
+
+- id: sandbox-policy
+  name: '@deepseek-ai/dsh-sandbox-policy'
+  config:
+    mode: danger-full-access
+    workspaceRoot: !!js process.env.DSH_CWD ?? process.cwd()
+
+# Managed child-process groups for the bash executor.
+- id: subprocess
+  name: '@deepseek-ai/dsh-subprocess-local'
+
+- id: bash
+  name: '@deepseek-ai/dsh-bash-sandbox'
+  config:
+    cwd: !!js process.env.DSH_CWD ?? process.cwd()
+    timeoutMs: 60000
+
+# Approval service + the preset table (read-only / default / full access).
+- id: approval
+  name: '@deepseek-ai/dsh-user-approval'
+
+- id: permission-presets
+  name: '@deepseek-ai/dsh-permission-presets'
+  config:
+    presets:
+      read-only:
+        sandbox: read-only
+        approval: ask
+        name: 只读
+        description: 沙箱只读，禁止写入
+      workspace-write:
+        sandbox: workspace-write
+        approval: ask
+        name: 默认（询问）
+        description: 工作区可写，超范围询问
+      danger-full-access:
+        sandbox: danger-full-access
+        approval: never
+        name: 全权
+        description: 完整访问，不询问
+    defaultPreset: danger-full-access
+
+- id: agent-spine
+  name: '@deepseek-ai/dsh-agent-spine-demo'
+  config:
+    persona: !!js process.env.DSH_SYSTEM_PROMPT ?? 'You are a helpful coding assistant.'
+    workspaceContext: false
+    skills:
+      enabled: false
+    toolBash:
+      enableRunInBackground: false
+    toolJobs: false
+
+- id: sessions
+  name: '@deepseek-ai/dsh-session-persistence-jsonl'
+  config:
+    root: !!js process.env.DSH_SESSION_ROOT ?? './.sessions-opencode-free'
+    compression: none
+
+- id: session-checkpoints
+  name: '@deepseek-ai/dsh-session-checkpoint-policy'
+
+- id: subagent
+  name: '@deepseek-ai/dsh-subagent'
+
+- id: subagent-spawn-in-process
+  name: '@deepseek-ai/dsh-subagent-spawn-in-process'
+  config:
+    providerName: spawn
+
+- id: tool-subagent
+  name: '@deepseek-ai/dsh-tool-subagent'
+  config:
+    provider: spawn
+    toolName: subagent
+    enableRunInBackground: false
+
+- id: tool-todo
+  name: '@deepseek-ai/dsh-tool-todo'
+  config:
+    allowParallelInProgress: true
+
+# The filesystem stack rides the same sandbox policy as bash.
+- id: fs-sandbox
+  name: '@deepseek-ai/dsh-fs-sandbox'
+
+- id: fs-observation-policy
+  name: '@deepseek-ai/dsh-fs-observation-policy'
+
+- id: tool-fs
+  name: '@deepseek-ai/dsh-tool-fs'
+
+- id: token-meter
+  name: '@deepseek-ai/dsh-token-meter'
+
+- id: compaction-basic
+  name: '@deepseek-ai/dsh-compaction-basic'
+  config:
+    thresholdRatio: 0.8
+    retainRatio: 0.16
+    maxTokens: 8192
+    compactionRetries: 1

@@ -3,3 +3,5 @@ dist
 *.log
 conversations/
 *.cordis.yml
+!opencode-free.cordis.yml
+!opencode-sandbox.cordis.yml
